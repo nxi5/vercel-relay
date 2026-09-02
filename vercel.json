@@ -1,0 +1,11 @@
+{
+  "functions": {
+    "api/relay.js": { "maxDuration": 60 },
+    "api/telegram.js": { "maxDuration": 60 },
+    "api/provision.js": { "maxDuration": 60 }
+  },
+  "rewrites": [
+    { "source": "/telegram/(.*)", "destination": "/api/telegram" },
+    { "source": "/(.*)", "destination": "/api/relay?up=$1" }
+  ]
+}

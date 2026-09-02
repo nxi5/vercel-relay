@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hermes Launcher — Daytona + Telegram</title>
+<style>
+  :root { --bg:#0c0c0c; --panel:#161616; --line:#2a2a2a; --txt:#e8e8e8; --dim:#8a8a8a; --acc:#7aa2ff; --ok:#3fb950; --err:#f85149; --warn:#d29922; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--txt); font-family:'Cascadia Code',Consolas,monospace; min-height:100vh; padding:32px 16px; }
+  .wrap { max-width:720px; margin:0 auto; }
+  h1 { font-size:22px; font-weight:600; letter-spacing:-0.5px; }
+  h1 span { color:var(--acc); }
+  .sub { color:var(--dim); font-size:13px; margin:8px 0 28px; line-height:1.6; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:20px; margin-bottom:16px; }
+  label { display:block; font-size:12px; color:var(--dim); margin:14px 0 6px; text-transform:uppercase; letter-spacing:1px; }
+  label:first-child { margin-top:0; }
+  input, textarea { width:100%; background:#0c0c0c; border:1px solid var(--line); border-radius:6px; color:var(--txt); font-family:inherit; font-size:13px; padding:10px 12px; outline:none; transition:border-color .15s; }
+  input:focus, textarea:focus { border-color:var(--acc); }
+  textarea { resize:vertical; min-height:44px; }
+  .hint { font-size:11px; color:var(--dim); margin-top:4px; }
+  button { width:100%; margin-top:20px; background:var(--acc); color:#0c0c0c; border:none; border-radius:6px; padding:13px; font-family:inherit; font-size:14px; font-weight:700; cursor:pointer; transition:opacity .15s; }
+  button:hover { opacity:.88; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .console { display:none; background:#0a0a0a; border:1px solid var(--line); border-radius:10px; padding:16px; margin-top:16px; max-height:380px; overflow-y:auto; }
+  .console .line { font-size:12px; line-height:1.7; word-break:break-all; }
+  .lv { font-weight:700; }
+  .lv.ok { color:var(--ok); } .lv.err { color:var(--err); } .lv.info { color:var(--acc); } .lv.warn { color:var(--warn); }
+  .status { display:inline-block; padding:3px 10px; border-radius:99px; font-size:11px; font-weight:700; margin-left:10px; vertical-align:middle; }
+  .status.run { background:#1c2c1e; color:var(--ok); } .status.fail { background:#2c1c1c; color:var(--err); }
+  .foot { color:var(--dim); font-size:11px; margin-top:24px; line-height:1.7; }
+  .foot b { color:var(--txt); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>hermes <span>launcher</span><span id="status" class="status" style="display:none"></span></h1>
+  <p class="sub">Paste your Daytona SSH line, your Telegram bot token + your chat id, and your Cloudflare AI token.
+  This page installs <b>Hermes Agent</b> into your sandbox and wires your Telegram bot to it — end to end, in one click.</p>
+
+  <div class="card">
+    <label>Daytona SSH command</label>
+    <textarea id="ssh" placeholder="ssh AbCdEf123@ssh.app.daytona.io    (paste the whole line, or just user@host)"></textarea>
+    <div class="hint">From Daytona: Sandbox → Connect → SSH. Fresh creds each spin-up.</div>
+
+    <label>Telegram bot token</label>
+    <input id="tgtoken" type="password" placeholder="123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11">
+    <div class="hint">From @BotFather — <b>your own bot</b>, your own token.</div>
+
+    <label>Your Telegram chat / user id</label>
+    <input id="tgchat" placeholder="e.g. 123456789">
+    <div class="hint">Only this chat will be able to talk to the bot.</div>
+
+    <label>Cloudflare account id</label>
+    <input id="cfacct" placeholder="32-char hex account id">
+
+    <label>Cloudflare API token (Workers AI)</label>
+    <input id="cftoken" type="password" placeholder="your inference-scoped token">
+    <div class="hint">Needs Workers AI permission only.</div>
+
+    <button id="go">LAUNCH →</button>
+  </div>
+
+  <div class="console" id="console"></div>
+
+  <p class="foot"><b>Privacy:</b> nothing is stored on this site. Your tokens go straight into
+  <b>your own sandbox</b> (/root/.hermes/config.yaml) and exist in memory only while provisioning runs.
+  All AI + Telegram traffic flows through the relay on this domain — it forwards bytes, keeps no logs.</p>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const console_ = $('console');
+
+function line(lv, msg) {
+  const d = document.createElement('div');
+  d.className = 'line';
+  d.innerHTML = `<span class="lv ${lv}">${lv.toUpperCase().padEnd(5)}</span> ${msg}`;
+  console_.appendChild(d);
+  console_.scrollTop = console_.scrollHeight;
+}
+function setStatus(txt, cls) {
+  const s = $('status');
+  s.style.display = 'inline-block';
+  s.textContent = txt;
+  s.className = 'status ' + cls;
+}
+
+function parseSsh(raw) {
+  let s = raw.trim().replace(/^ssh\s+/, '');
+  s = s.replace(/[~@#].*$/, '').trim();          // drop trailing " # comment"
+  s = s.split(/\s+/)[0];                          // drop any extra args
+  return s;
+}
+
+$('go').onclick = async () => {
+  const ssh_user = parseSsh($('ssh').value);
+  const body = {
+    ssh: ssh_user,
+    tg_token: $('tgtoken').value.trim(),
+    tg_chat: $('tgchat').value.trim(),
+    cf_acct: $('cfacct').value.trim(),
+    cf_token: $('cftoken').value.trim(),
+  };
+  if (!body.ssh.includes('@') || !body.tg_token || !body.tg_chat || !body.cf_acct || !body.cf_token) {
+    console_.style.display = 'block';
+    line('err', 'all fields are required (ssh as user@host)');
+    return;
+  }
+  $('go').disabled = true;
+  console_.style.display = 'block';
+  console_.innerHTML = '';
+  setStatus('RUNNING', 'run');
+  line('info', 'connecting to sandbox…');
+
+  let id;
+  try {
+    const r = await fetch('/api/provision', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'start', ...body })
+    });
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.error || 'start failed');
+    id = j.id;
+    line('ok', 'job started: ' + id);
+  } catch (e) {
+    line('err', 'start failed: ' + e.message);
+    setStatus('FAILED', 'fail');
+    $('go').disabled = false;
+    return;
+  }
+
+  while (true) {
+    await new Promise(r => setTimeout(r, 2000));
+    try {
+      const r = await fetch('/api/provision', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'poll', id })
+      });
+      const j = await r.json();
+      for (const l of (j.new_lines || [])) line(l.lv, l.msg);
+      if (j.state === 'done') { setStatus('DONE ✓', 'run'); break; }
+      if (j.state === 'failed') { setStatus('FAILED', 'fail'); break; }
+    } catch (e) {
+      line('warn', 'poll hiccup: ' + e.message);
+    }
+  }
+  $('go').disabled = false;
+};
+</script>
+</body>
+</html>
