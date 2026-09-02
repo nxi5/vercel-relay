@@ -7,7 +7,7 @@ tg_poller.py — Telegram <-> Hermes bridge, runs INSIDE the Daytona sandbox.
 - ALL network goes through the Vercel relay (DPI only whitelists *.vercel.app)
 Env:
   TG_TOKEN, TG_CHAT_ID   (user's bot token + allowed chat id)
-  RELAY_BASE             e.g. https://vercel-relay-steel-nine-15.vercel.app
+  RELAY_BASE             e.g. https://free-hermes.vercel.app
 """
 import json
 import os

@@ -7,9 +7,9 @@
 Paste 5 fields. Get a private AI agent in a fresh cloud VM that answers you on Telegram.
 No accounts here. No tokens stored. Nothing to install.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fnxi5%2Fvercel-relay&project-name=hermes-relay)
-[![Deploy status](https://github.com/nxi5/vercel-relay/actions/workflows/deploy.yml/badge.svg)](https://github.com/nxi5/vercel-relay/actions/workflows/deploy.yml)
-[![Open in Codespaces](https://img.shields.io/badge/Open_in-Codespaces-blue?logo=github)](https://codespaces.new/nxi5/vercel-relay)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fnxi5%2Ffree-hermes&project-name=free-hermes)
+[![Deploy status](https://github.com/nxi5/free-hermes/actions/workflows/deploy.yml/badge.svg)](https://github.com/nxi5/free-hermes/actions/workflows/deploy.yml)
+[![Open in Codespaces](https://img.shields.io/badge/Open_in-Codespaces-blue?logo=github)](https://codespaces.new/nxi5/free-hermes)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 </div>
@@ -51,13 +51,13 @@ No shared infrastructure, no hardcoded anything.
 ### Option B — CLI
 
 ```bash
-git clone https://github.com/nxi5/vercel-relay.git && cd vercel-relay
+git clone https://github.com/nxi5/free-hermes.git && cd free-hermes
 npx vercel deploy --prod
 ```
 
 ### Option C — use the hosted instance
 
-Open **https://vercel-relay-steel-nine-15.vercel.app** — same code, nothing stored.
+Open **https://free-hermes.vercel.app** — same code, nothing stored.
 
 ---
 

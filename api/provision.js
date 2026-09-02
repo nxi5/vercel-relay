@@ -7,7 +7,7 @@ const { Client } = ssh2Pkg;
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 // ── Tunables (not secrets) ──────────────────────────────────────────
-const RELAY_BASE = 'https://vercel-relay-steel-nine-15.vercel.app';
+const RELAY_BASE = 'https://free-hermes.vercel.app';
 const MODEL = '@cf/zai-org/glm-5.3-flash';
 const BOOT_TIMEOUT = 540_000; // 9 min hard cap for the installer
 const JOB_TTL = 45 * 60_000;  // keep finished jobs 45 min

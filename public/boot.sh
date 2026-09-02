@@ -2,7 +2,7 @@
 # boot.sh — Install & configure Hermes Agent inside a Daytona sandbox.
 # Runs ON THE SANDBOX, streamed over SSH by /api/provision.
 # Env (exported before this runs):
-#   RELAY_BASE  e.g. https://vercel-relay-steel-nine-15.vercel.app
+#   RELAY_BASE  e.g. https://free-hermes.vercel.app
 #   CF_ACCT     Cloudflare account id
 #   CF_TOKEN    Cloudflare AI inference token
 #   MODEL       e.g. @cf/zai-org/glm-5.3-flash
